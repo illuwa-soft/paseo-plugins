@@ -4486,7 +4486,7 @@ export function GitHubBoard(props: PluginScreenProps) {
             title is the width the repository filter needs. The settings view
             keeps its own, because the chrome does not say which view this is. */}
         {props.layout.compact && !showSettings ? null : (
-          <Text style={styles.title}>{showSettings ? "GitHub settings" : "GitHub"}</Text>
+          <Text style={styles.title}>{showSettings ? "GitHub (illuwa) settings" : "GitHub (illuwa)"}</Text>
         )}
         {showSettings ? null : repositories.length > 0 ? (
           <RepoFilter

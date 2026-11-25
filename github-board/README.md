@@ -293,55 +293,45 @@ hit.
 
 ## Install
 
-```bash
-paseo plugin install npm:@gpambrozio/paseo-github-board
-```
-
-That is the shortest route on **Paseo 0.13 or newer**, which installs plugins straight from npm; add
-`@<version>` to pin one. On Paseo 0.11 or 0.12, install the last release that supports them:
-`paseo plugin install npm:@gpambrozio/paseo-github-board@0.10.2`. On Paseo 0.9 or 0.10:
-`paseo plugin install npm:@gpambrozio/paseo-github-board@0.9.3`. On 0.8, install the last release that supported it from this repository instead:
+illuwa 포크의 플러그인 ID는 `illuwa-github-board`, 패키지 이름은
+`@illuwa-soft/paseo-github-board`, 표시 이름은 **GitHub (illuwa)**다.
+작업 worktree가 아닌 정식 체크아웃의 `main`에서만 설치한다:
 
 ```bash
-paseo plugin add gpambrozio/paseo-plugins --path github-board
-```
-
-This repository holds five plugins, hence `--path`. The daemon clones it under `$PASEO_HOME/plugins`
-and runs no package manager — the plugin is source only, and everything it imports at runtime the
-host provides. Pin a release with `--ref <tag>`; later, `paseo plugin status` and
-`paseo plugin update github-board` follow the branch.
-
-To hack on it instead, install from a clone of your own:
-
-```bash
-git clone https://github.com/gpambrozio/paseo-plugins.git
-cd paseo-plugins/github-board
-npm install
-npm run typecheck
-paseo plugin install "$PWD"
+paseo plugin install /Users/cinos81/works/paseo-plugins/github-board
 ```
 
 `install` records the directory, so keep that clone where it is — the daemon loads the plugin from
-that path every time it starts. `npm install` is for the typecheck; installing needs none of it.
+that path every time it starts.
 
-The daemon needs `"pluginsEnabled": true` in its `config.json`. Run `paseo reload` after changing
-it. Plugin code is trusted and unsandboxed: the server half shells out to `gh` on the daemon
-machine and the client half runs inside the Paseo app.
+정식 `main` 체크아웃에서 `git pull --ff-only` 후
+`paseo plugin reload illuwa-github-board`로 갱신한다.
+
+포크의 호스트 설정과 `$PASEO_HOME/plugin-data/illuwa-github-board/`는 새로 시작하며
+upstream 플러그인의 데이터를 이관하지 않는다. 포크의 Actions는 비활성 상태를 유지하고
+npm 배포·태그·GitHub 릴리스를 만들지 않는다.
+
+데몬의 `config.json`에는 `"pluginsEnabled": true`가 필요하다. 플러그인 코드는
+샌드박스 밖에서 실행된다. 서버 코드는 데몬 머신에서 `gh`를 호출하고 클라이언트 코드는
+Paseo 앱 안에서 실행된다.
 
 ## Develop
 
 ```bash
 npm run typecheck
-paseo plugin reload github-board   # after any source change
-paseo plugin logs github-board     # load errors and stderr
+npm test
 ```
+
+PR 전에 `github-board/`에서 실행한다. 머지 전 런타임 검증은 후보 복사본과
+별도 데몬·홈을 사용하며 실제 설치는 정식 `main`을 계속 가리킨다.
+설치본을 갱신한 뒤 로드 오류는 `paseo plugin logs illuwa-github-board`로 확인한다.
 
 ## Which account the board follows
 
 The login resolves in this order:
 
 1. the login typed into the header field (persisted on **Set**),
-2. the saved login at `$PASEO_HOME/plugin-data/github-board/settings.json`,
+2. the saved login at `$PASEO_HOME/plugin-data/illuwa-github-board/settings.json`,
 3. the account `gh` is authenticated as.
 
 The settings file holds `login`, `hiddenRepositories`, the `prompts`, and the

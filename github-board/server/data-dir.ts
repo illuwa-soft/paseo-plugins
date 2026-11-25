@@ -14,7 +14,7 @@ import { cpSync, linkSync, lstatSync, mkdirSync, renameSync, rmSync } from "node
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
-export const PLUGIN_ID = "github-board";
+export const PLUGIN_ID = "illuwa-github-board";
 
 export function paseoHome(): string {
   return process.env.PASEO_HOME ?? join(homedir(), ".paseo");

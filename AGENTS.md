@@ -1,5 +1,20 @@
 # AGENTS.md
 
+## illuwa 포크 우선 규칙
+
+`github-board/`의 런타임 ID는 `illuwa-github-board`, 패키지 이름은
+`@illuwa-soft/paseo-github-board`, UI 제목은 `GitHub (illuwa)`다. CI 목록은
+디렉터리를 가리키므로 `github-board`를 유지한다. 설정과 데몬 데이터는 새 ID에서
+처음부터 시작하며 upstream 데이터는 이관하지 않는다.
+
+실제 설치 경로는 정식 `main`의 `/Users/cinos81/works/paseo-plugins/github-board`다.
+작업 worktree를 설치 경로로 쓰지 않는다. 정식 `main`에서 `git pull --ff-only` 후
+`paseo plugin reload illuwa-github-board`로 갱신한다. 머지 전 후보는 복사본으로
+별도 데몬·홈에서 검증한다. 포크의 Actions는 비활성 상태를 유지한다.
+버전과 changelog는 로컬에서 관리하며 npm 배포·태그·릴리스를 만들거나
+`publish.yml`을 수정하지 않는다. 이 규칙은 아래 upstream 배포·설치 지침보다 우선한다.
+근거: [#6의 사용자 결정](https://github.com/illuwa-soft/paseo-plugins/issues/6#issuecomment-7152536096).
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 Plugins for [Paseo](https://paseo.sh), one self-contained folder per plugin: `skills/`,

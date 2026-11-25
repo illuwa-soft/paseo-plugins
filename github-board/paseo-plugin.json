@@ -1,6 +1,6 @@
 {
-  "id": "github-board",
-  "description": "Your GitHub issues, pull requests and discussions on one sidebar board",
+  "id": "illuwa-github-board",
+  "description": "illuwa fork: your GitHub issues, pull requests and discussions on one sidebar board",
   "requirements": {
     "paseo": ">=0.13.0"
   }

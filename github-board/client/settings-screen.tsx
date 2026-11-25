@@ -1,6 +1,6 @@
 /**
  * The same prompt-and-login editor the board's gear button opens, reachable
- * from **Settings → Plugins → GitHub board** as well.
+ * from **Settings → Plugins → GitHub (illuwa)** as well.
  *
  * Two entry points, one editor: both frames render `PromptSettingsView` and
  * both bind to the `promptSettings` document, so they cannot show different

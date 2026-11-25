@@ -5,7 +5,7 @@ Plugins for [Paseo](https://paseo.sh). One folder per plugin, each self-containe
 | Plugin | ID | What it does |
 | --- | --- | --- |
 | [`skills/`](skills) | `skills` | Lists the agent skills available to a session, shows where each comes from, renders its `SKILL.md`, and invokes it. |
-| [`github-board/`](github-board) | `github-board` | A sidebar board of open issues, draft PRs, open PRs, and discussions — yours, plus whatever is open on the repos you own — in four columns. |
+| [`github-board/`](github-board) | `illuwa-github-board` | **GitHub (illuwa)**: 내가 작성했거나 내 저장소에 열린 이슈·초안 PR·열린 PR·토론을 네 열로 보여 주는 사이드바 보드. |
 | [`launchd-jobs/`](launchd-jobs) | `launchd-jobs` | Schedules shell commands through launchd on the daemon's Mac — a cron expression or an interval, run whether or not Paseo is open, with run history and logs. macOS only. |
 | [`herald/`](herald) | `herald` | A sidebar panel of every agent waiting on you — a question, a permission, a finished turn — each with a one-sentence summary a helper agent wrote, and the Paseo app speaks that sentence when it happens. |
 | [`model-pricing/`](model-pricing) | `model-pricing` | One sidebar table of what every model costs, across Anthropic, OpenAI, Fireworks AI, Ollama Cloud and OpenRouter, with the context window and capabilities beside each price. |
@@ -13,12 +13,22 @@ Plugins for [Paseo](https://paseo.sh). One folder per plugin, each self-containe
 
 ## Install
 
+illuwa GitHub 보드의 패키지 이름은 `@illuwa-soft/paseo-github-board`다.
+npm이나 작업 worktree 대신 정식 체크아웃의 `main`에서 설치한다:
+
+```bash
+paseo plugin install /Users/cinos81/works/paseo-plugins/github-board
+```
+
+정식 `main`에서 `git pull --ff-only` 후 `paseo plugin reload illuwa-github-board`로 갱신한다.
+분리된 설정과 개발 검증은 [보드 설치 안내](github-board#install)를 따른다.
+아래 명령은 나머지 upstream 플러그인에 대한 안내다.
+
 Plugins install individually — there is no repo-wide install. On **Paseo 0.9 or
 newer**, each one is an npm package:
 
 ```bash
 paseo plugin install npm:@gpambrozio/paseo-skills
-paseo plugin install npm:@gpambrozio/paseo-github-board
 paseo plugin install npm:@gpambrozio/paseo-launchd-jobs
 paseo plugin install npm:@gpambrozio/paseo-herald
 paseo plugin install npm:@gpambrozio/paseo-model-pricing
@@ -32,7 +42,6 @@ On Paseo 0.8, install the last release that supported it from this repository in
 
 ```bash
 paseo plugin add gpambrozio/paseo-plugins --path skills
-paseo plugin add gpambrozio/paseo-plugins --path github-board
 paseo plugin add gpambrozio/paseo-plugins --path launchd-jobs
 paseo plugin add gpambrozio/paseo-plugins --path herald
 paseo plugin add gpambrozio/paseo-plugins --path model-pricing
