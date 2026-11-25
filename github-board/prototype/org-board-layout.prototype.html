@@ -1,0 +1,336 @@
+<!doctype html>
+<!--
+  PROTOTYPE — 버릴 코드입니다. main에 병합하지 않습니다.
+  질문: 「조직 이슈 화면 배치 (넓은 창·좁은 창)」(illuwa-soft/paseo-plugins#5)
+  배치 시안 세 가지를 ?variant=A|B|C 로 바꿔 봅니다. 하단 막대의 화살표나 키보드 ←/→ 로도 바뀝니다.
+  오른쪽 위 도구로 넓은 창/좁은 창, 테마, 조회 상황(오류·누락), 카드의 연결 PR 표시를 바꿉니다.
+  색은 Paseo 테마 토큰 11개(surface0~2, foreground, foregroundMuted, border, accent,
+  accentForeground, statusSuccess, statusWarning, statusDanger)에 대응하는 CSS 변수만 씁니다.
+  데이터는 가짜입니다. illuwa-soft의 라벨 분포(2026-11-25, 열린 이슈 98건 중 needs-triage 27,
+  ready-for-human 5 …)만 실제를 따랐고, 저장소 이름과 제목은 지어낸 것입니다(공개 저장소라서).
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE · 조직 이슈 화면 배치</title>
+<style>
+  :root[data-theme=dark]{--surface0:#16181c;--surface1:#1f2228;--surface2:#2a2e36;--foreground:#e8eaed;--foregroundMuted:#9aa0a6;--border:#343944;--accent:#5b8def;--accentForeground:#fff;--statusSuccess:#3fb950;--statusWarning:#d29922;--statusDanger:#f85149}
+  :root[data-theme=light]{--surface0:#ffffff;--surface1:#f5f6f8;--surface2:#e9ebef;--foreground:#1f2328;--foregroundMuted:#656d76;--border:#d0d7de;--accent:#0969da;--accentForeground:#fff;--statusSuccess:#1a7f37;--statusWarning:#9a6700;--statusDanger:#cf222e}
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;background:var(--surface1);color:var(--foreground)}
+  .frame{margin:56px auto 20px;border:1px solid var(--border);border-radius:10px;background:var(--surface0);overflow:hidden;display:flex;flex-direction:column}
+  .frame.wide{width:1180px;max-width:98vw;height:640px}.frame.compact{width:390px;height:760px}
+  .chrome{padding:6px 12px;font-size:12px;color:var(--foregroundMuted);border-bottom:1px solid var(--border);background:var(--surface1)}
+  .hdr{display:flex;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;position:relative}
+  .compact .hdr{padding:10px 12px}
+  .hdr h1{font-size:19px;margin:0 6px 0 0}
+  .sp{flex:1}
+  .age{color:var(--foregroundMuted);font-size:12px}
+  button,.btn{background:var(--surface2);color:var(--foreground);border:1px solid var(--border);border-radius:6px;padding:4px 9px;font:inherit;font-size:13px;cursor:pointer}
+  .ib{padding:3px 7px}
+  .seg{display:inline-flex;border:1px solid var(--border);border-radius:7px;overflow:hidden}
+  .seg button{border:0;border-radius:0;border-right:1px solid var(--border);background:var(--surface1)}
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:var(--accent);color:var(--accentForeground)}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:5px;vertical-align:middle}
+  .dot.warn{background:var(--statusWarning)}.dot.danger{background:var(--statusDanger)}
+  .dd{position:relative}
+  .menu{position:absolute;top:calc(100% + 4px);left:0;z-index:5;background:var(--surface1);border:1px solid var(--border);border-radius:8px;padding:6px;min-width:220px;max-height:300px;overflow:auto;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+  .menu label,.menu .opt{display:flex;gap:7px;align-items:center;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:13px}
+  .menu .opt.on{background:var(--surface2)}
+  .menu .row{display:flex;gap:6px;margin-bottom:4px}
+  .status{padding:6px 18px;border-bottom:1px solid var(--border);font-size:12.5px;display:flex;flex-direction:column;gap:3px}
+  .compact .status{padding:6px 12px}
+  .status .warn{color:var(--statusWarning)}.status .danger{color:var(--statusDanger)}
+  .status a{color:var(--accent);cursor:pointer}
+  .full-error{margin:40px auto;max-width:420px;text-align:center;color:var(--statusDanger)}
+  .full-error p{color:var(--foregroundMuted)}
+  .body{flex:1;min-height:0;display:flex;position:relative}
+  /* 칸 */
+  .cols{display:flex;gap:12px;padding:12px;overflow-x:auto;flex:1;min-width:0}
+  .col{flex:0 0 272px;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:10px;background:var(--surface1);min-height:0}
+  .col.rest{border-style:dashed}
+  .col.fit{flex:1 1 0;min-width:220px}
+  .col h3{margin:0;padding:9px 12px;font-size:14px;display:flex;gap:6px;align-items:center;border-bottom:1px solid var(--border)}
+  .col h3 .n{color:var(--foregroundMuted);font-weight:600;font-size:12px}
+  .col .orgs{font-size:11px;color:var(--foregroundMuted);font-weight:400;margin-left:auto}
+  .list{overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .card{background:var(--surface0);border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;position:relative}
+  .card:hover{border-color:var(--accent)}
+  .card .repo{font-size:11px;color:var(--foregroundMuted)}
+  .card .t{font-size:13px;margin:2px 0 4px}
+  .card .meta{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:10.5px;color:var(--foregroundMuted)}
+  .lab{border:1px solid var(--border);border-radius:999px;padding:0 6px;background:var(--surface2);color:var(--foreground)}
+  .lab.col-lab{border-color:var(--accent)}
+  .pr{border-radius:4px;padding:0 5px;border:1px solid var(--statusSuccess);color:var(--statusSuccess)}
+  .pr.merged{border-color:var(--foregroundMuted);color:var(--foregroundMuted)}
+  .send{position:absolute;top:6px;right:6px;font-size:11px;padding:1px 6px;opacity:0}
+  .card:hover .send{opacity:1}
+  .compact .send{position:static;opacity:1;display:block;margin-top:6px;width:100%}
+  .compact .card .t{font-size:15px}
+  .empty{color:var(--foregroundMuted);font-size:12px;padding:6px}
+  /* 좁은 창 탭 */
+  .tabs{display:flex;gap:6px;padding:8px 12px;overflow-x:auto;border-bottom:1px solid var(--border);flex:0 0 auto}
+  .tab{flex:0 0 auto;border-radius:999px;padding:4px 10px;background:var(--surface1)}
+  .tab.on{background:var(--accent);color:var(--accentForeground);border-color:var(--accent)}
+  .tab .n{opacity:.75;margin-left:4px;font-size:12px}
+  .vstack{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+  /* B: 왼쪽 조직 목록 */
+  .rail{width:210px;flex:0 0 auto;border-right:1px solid var(--border);padding:10px 8px;overflow-y:auto;background:var(--surface1)}
+  .rail .it{padding:7px 9px;border-radius:7px;cursor:pointer;display:flex;flex-direction:column;gap:1px}
+  .rail .it.on{background:var(--surface2)}
+  .rail .it .top{display:flex;justify-content:space-between}
+  .rail .it .sub{font-size:11.5px}
+  .rail .it .sub.warn{color:var(--statusWarning)}.rail .it .sub.danger{color:var(--statusDanger)}
+  .rail .it .sub.ok{color:var(--foregroundMuted)}
+  /* C: 묶음 목록 */
+  .sections{flex:1;overflow-y:auto;min-width:0}
+  .sec{border-bottom:1px solid var(--border)}
+  .sec>h3{position:sticky;top:0;z-index:1;margin:0;padding:8px 18px;font-size:14px;background:var(--surface1);border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center;cursor:pointer}
+  .compact .sec>h3{padding:8px 12px}
+  .sec>h3 .n{color:var(--foregroundMuted);font-size:12px}
+  .rows{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px;padding:10px 18px}
+  .compact .rows{grid-template-columns:1fr;padding:8px 12px}
+  .jump{display:flex;gap:6px;padding:6px 18px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+  .compact .jump{padding:6px 12px;flex-wrap:nowrap;overflow-x:auto}
+  .jump .tab{font-size:12px}
+  /* 상세 패널(흉내) */
+  .detail{position:absolute;top:0;right:0;bottom:0;width:50%;background:var(--surface0);border-left:1px solid var(--border);padding:14px 16px;overflow:auto;box-shadow:-6px 0 18px rgba(0,0,0,.2);z-index:3}
+  .compact .detail{width:100%;border-left:0}
+  .detail h2{font-size:18px;margin:6px 0}
+  select{background:var(--surface1);color:var(--foreground);border:1px solid var(--border);border-radius:6px;padding:4px 6px;font:inherit;font-size:13px}
+  /* 프로토타입 도구 */
+  .tools{position:fixed;top:8px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:20;background:#111;padding:6px 8px;border-radius:10px;align-items:center;color:#fff;font-size:12px}
+  .tools button,.tools select{background:#333;color:#fff;border:0}
+  pre.state{margin:0 auto 70px;width:1180px;max-width:98vw;background:var(--surface0);border:1px dashed var(--border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--foregroundMuted);white-space:pre-wrap}
+  .switcher{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#111;color:#fff;border-radius:999px;padding:6px 10px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:20;font-size:13px}
+  .switcher button{background:#333;color:#fff;border:0;border-radius:999px;padding:4px 10px}
+</style>
+</head>
+<body>
+<div class="tools">
+  <button onclick="S.wide=!S.wide;render()">넓은 창 / 좁은 창</button>
+  <button onclick="toggleTheme()">테마</button>
+  <span>조회 상황</span>
+  <select onchange="S.scenario=this.value;render()" id="scn">
+    <option value="ok">모두 정상</option>
+    <option value="mixed">일부 문제(partial·error·이전 데이터)</option>
+    <option value="capped">illuwa-soft 1,000건 상한</option>
+    <option value="allfail">모두 같은 원인으로 실패(gh 미인증)</option>
+  </select>
+  <span>연결 PR</span>
+  <select onchange="S.pr=this.value;render()" id="prm">
+    <option value="none">표시 안 함</option>
+    <option value="open">열린 PR만</option>
+    <option value="all">열림 + 머지됨</option>
+  </select>
+</div>
+<div id="app"></div>
+<pre class="state" id="state"></pre>
+<div class="switcher"><button onclick="cycle(-1)">◀</button><span id="vlabel"></span><button onclick="cycle(1)">▶</button></div>
+
+<script>
+// ---------- 가짜 데이터 ----------
+function rng(seed){return()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff}}
+const R=rng(7);
+const pick=a=>a[Math.floor(R()*a.length)];
+const WORDS=["설정 화면","로그인","동기화","알림","배포 스크립트","캐시","검색","권한","문서","테스트","대시보드","업로드","타임라인","백업","웹훅"];
+const VERBS=["이 깨짐","개선","정리","추가","오류 수정","재설계","느림","누락","확인 필요","이전"];
+function mk(org,repos,labelPlan,total,startNo){
+  const out=[];let no=startNo;
+  const plan=[];labelPlan.forEach(([l,c])=>{for(let i=0;i<c;i++)plan.push(l)});
+  for(let i=0;i<total;i++){
+    const labels=[];
+    if(plan[i])labels.push(plan[i]);
+    if(plan[i]&&R()<.15)labels.push(pick(["enhancement","documentation","needs-info"]));
+    const prR=R();
+    out.push({org,repo:pick(repos),number:no+=Math.ceil(R()*7),title:pick(WORDS)+" "+pick(VERBS),labels,
+      comments:Math.floor(R()*6),age:Math.floor(R()*60*24*20),
+      prs:prR<.06?[{n:no+3,state:"OPEN"}]:prR<.1?[{n:no+2,state:"MERGED"}]:prR<.12?[{n:no+1,state:"MERGED"},{n:no+4,state:"OPEN"}]:[]});
+  }
+  // 라벨 순서가 뒤섞이도록 섞는다
+  return out.sort(()=>R()-.5).sort((a,b)=>a.age-b.age);
+}
+const ORGS_DATA={
+  "illuwa-soft":mk("illuwa-soft",["web-portal","agent-skills","mobile-app","router","debate","scaffold","assistant","paseo-plugins","ops-runner","notes"],
+     [["needs-triage",27],["ready-for-human",5],["ready-for-agent",2],["needs-info",2],["wayfinder:grilling",2],["wayfinder:map",2],["wontfix",1],["enhancement",1]],98,1),
+  "shoveller":mk("shoveller",["shop-api","shop-web","infra"],[["bug",9],["Ready-For-Human",2],["needs-triage",6]],23,100),
+  "acme-lab":mk("acme-lab",["lab-core","lab-docs"],[["bug",3],["needs-triage",2]],9,10),
+};
+// 설정 문서 org-board 흉내 (조직 순서 = "전체" 보기의 칸 순서)
+const SETTINGS={orgs:[
+  {login:"illuwa-soft",columnLabels:["ready-for-human","ready-for-agent","needs-triage"]},
+  {login:"shoveller",columnLabels:["bug","ready-for-human"]},
+  {login:"acme-lab",columnLabels:["bug"]},
+]};
+
+// ---------- 상태 ----------
+const S={variant:new URLSearchParams(location.search).get("variant")||"A",wide:true,scenario:"ok",pr:"none",
+  org:"전체",hiddenRepos:new Set(),labelFilter:new Set(),openMenu:null,tab:null,detail:null,collapsed:new Set()};
+const VARIANTS={A:"칸 가로 스크롤 + 머리줄 조직 버튼",B:"왼쪽 조직 목록 + 칸 맞춤",C:"칸 대신 묶음 목록"};
+
+function orgStatus(login){
+  const n=ORGS_DATA[login].length;
+  const s=S.scenario;
+  if(s==="allfail")return{status:"error",msg:"gh 인증이 필요합니다 (gh auth login)",items:[]};
+  if(s==="capped"&&login==="illuwa-soft")return{status:"capped",msg:`1,240건 중 1,000건만 표시(검색 상한)`,items:ORGS_DATA[login]};
+  if(s==="mixed"&&login==="shoveller")return{status:"partial",msg:`${n}건 중 ${n-5}건만 불러옴`,items:ORGS_DATA[login].slice(0,n-5),refresh:true};
+  if(s==="mixed"&&login==="acme-lab")return{status:"error",msg:"찾을 수 없거나 접근 권한 없음 · 12분 전 데이터",items:ORGS_DATA[login]};
+  return{status:"ok",items:ORGS_DATA[login]};
+}
+const lc=s=>s.toLowerCase();
+function visibleOrgs(){return S.org==="전체"?SETTINGS.orgs.map(o=>o.login):[S.org]}
+function allItems(){return visibleOrgs().flatMap(o=>orgStatus(o).items)}
+function filtered(){
+  return allItems().filter(i=>!S.hiddenRepos.has(i.org+"/"+i.repo))
+    .filter(i=>S.labelFilter.size===0||i.labels.some(l=>S.labelFilter.has(lc(l))));
+}
+// 칸 배정: 조직의 라벨 순서상 처음 맞는 칸, 없으면 나머지. "전체"는 조직 순서대로 처음 나온 순으로 칸을 합친다.
+function columns(){
+  const orgs=visibleOrgs();const order=[];const names={};
+  orgs.forEach(o=>SETTINGS.orgs.find(x=>x.login===o).columnLabels.forEach(l=>{if(!names[lc(l)]){names[lc(l)]=l;order.push(lc(l))}}));
+  const cols=order.map(k=>({key:k,name:names[k],items:[],orgs:new Set()}));
+  const rest={key:"__rest",name:"나머지 이슈",items:[],orgs:new Set(),rest:true};
+  filtered().forEach(i=>{
+    const cl=SETTINGS.orgs.find(x=>x.login===i.org).columnLabels.map(lc);
+    const hit=cl.find(l=>i.labels.map(lc).includes(l));
+    const c=hit?cols.find(c=>c.key===hit):rest;c.items.push(i);c.orgs.add(i.org);
+  });
+  return[...cols,rest];
+}
+function problems(){
+  const ps=visibleOrgs().map(o=>({o,...orgStatus(o)})).filter(p=>p.status!=="ok");
+  return ps;
+}
+
+// ---------- 공용 조각 ----------
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function ago(m){return m<60?`${m}분 전`:m<1440?`${Math.floor(m/60)}시간 전`:`${Math.floor(m/1440)}일 전`}
+function prBadges(i){
+  if(S.pr==="none")return"";
+  return i.prs.filter(p=>S.pr==="all"||p.state==="OPEN").map(p=>`<span class="pr ${p.state==="MERGED"?"merged":""}" title="연결 PR">PR #${p.n} ${p.state==="OPEN"?"열림":"머지됨"}</span>`).join("");
+}
+function card(i,colKey){
+  const showOrg=S.org==="전체";
+  return `<div class="card" onclick="openDetail('${i.org}','${i.repo}',${i.number})">
+    <div class="repo">${showOrg?esc(i.org)+"/":""}${esc(i.repo)} #${i.number}</div>
+    <div class="t">${esc(i.title)}</div>
+    <div class="meta">${i.labels.map(l=>`<span class="lab ${lc(l)===colKey?"col-lab":""}">${esc(l)}</span>`).join("")}${prBadges(i)}<span>💬 ${i.comments}</span><span>${ago(i.age)}</span></div>
+    <button class="send" onclick="event.stopPropagation();alert('Send to chat (흉내)')">Send to chat</button>
+  </div>`;
+}
+function statusLines(){
+  const ps=problems();
+  if(ps.length===0)return"";
+  return `<div class="status">${ps.map(p=>`<div class="${p.status==="error"?"danger":"warn"}">● <b>${p.o}</b> — ${p.msg}${p.refresh?` — <a onclick="alert('이 조직만 다시 받기')">새로고침</a>`:""}</div>`).join("")}</div>`;
+}
+function allFailed(){return S.scenario==="allfail"}
+function fullError(){return `<div class="full-error"><b>GitHub에 연결하지 못했습니다</b><p>등록된 조직 ${SETTINGS.orgs.length}곳 모두 같은 원인으로 실패했습니다: gh 인증이 필요합니다 (gh auth login)</p><button>다시 시도</button></div>`}
+function dotFor(login){const s=orgStatus(login).status;return s==="ok"?"":`<span class="dot ${s==="error"?"danger":"warn"}"></span>`}
+function orgSeg(){
+  const opts=["전체",...SETTINGS.orgs.map(o=>o.login)];
+  return `<div class="seg">${opts.map(o=>`<button class="${S.org===o?"on":""}" onclick="setOrg('${o}')">${o}${o==="전체"?"":dotFor(o)}</button>`).join("")}</div>`;
+}
+function orgSelect(){
+  const opts=["전체",...SETTINGS.orgs.map(o=>o.login)];
+  return `<select onchange="setOrg(this.value)">${opts.map(o=>{const s=o==="전체"?"ok":orgStatus(o).status;return`<option ${S.org===o?"selected":""} value="${o}">${o}${s==="ok"?"":s==="error"?" ⛔":" ⚠"}</option>`}).join("")}</select>`;
+}
+function repoFilter(){
+  const repos=[...new Set(allItems().map(i=>i.org+"/"+i.repo))].sort();
+  const shown=repos.filter(r=>!S.hiddenRepos.has(r)).length;
+  return `<div class="dd"><button onclick="toggleMenu('repo')">저장소 ${shown}/${repos.length} ▾</button>${S.openMenu==="repo"?`<div class="menu" onclick="event.stopPropagation()"><div class="row"><button onclick="S.hiddenRepos.clear();render()">전체 선택</button><button onclick="repos_none()">모두 해제</button></div>${repos.map(r=>`<label><input type="checkbox" ${S.hiddenRepos.has(r)?"":"checked"} onchange="toggleRepo('${r}')">${r}</label>`).join("")}</div>`:""}</div>`;
+}
+function labelFilter(){
+  const counts={};allItems().forEach(i=>i.labels.forEach(l=>{counts[lc(l)]=(counts[lc(l)]||0)+1}));
+  const ls=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const n=S.labelFilter.size;
+  return `<div class="dd"><button onclick="toggleMenu('label')">라벨 ${n===0?"전체":n+"개"} ▾</button>${S.openMenu==="label"?`<div class="menu" onclick="event.stopPropagation()"><div class="empty">고른 라벨 중 하나라도 붙은 이슈만 보입니다. 아무것도 고르지 않으면 모두 보입니다.</div>${ls.map(([l,c])=>`<label><input type="checkbox" ${S.labelFilter.has(l)?"checked":""} onchange="toggleLabel('${l}')">${l} <span class="age">${c}</span></label>`).join("")}</div>`:""}</div>`;
+}
+function headerRight(compact){
+  return `<span class="sp"></span><span class="age">갱신 3분 전</span><button class="ib" title="조직·라벨 설정">⚙</button>${compact?"":`<button class="ib" title="새로고침">↻</button>`}`;
+}
+function detailPanel(){
+  if(!S.detail)return"";
+  const i=S.detail;
+  return `<div class="detail"><button onclick="S.detail=null;render()">✕ 닫기</button><div class="repo age">${i.org}/${i.repo} #${i.number}</div><h2>${esc(i.title)}</h2><div class="meta">${i.labels.map(l=>`<span class="lab">${esc(l)}</span>`).join(" ")} ${prBadges(i)}</div><p class="age">(본문·댓글은 개인 보드의 상세 패널과 같습니다. 댓글 쓰기와 Send to chat만 있고 라벨 편집은 없습니다.)</p><button>댓글 쓰기</button> <button>Send to chat</button></div>`;
+}
+
+// ---------- 시안 A: 머리줄 조직 버튼 + 고정 폭 칸 가로 스크롤 / 좁은 창은 칸 탭 ----------
+function variantA(){
+  const compact=!S.wide;const cols=columns();
+  if(!S.tab||!cols.find(c=>c.key===S.tab))S.tab=cols[0].key;
+  const head=`<div class="hdr">${compact?"":"<h1>조직 이슈</h1>"}${compact?orgSelect():orgSeg()}${repoFilter()}${labelFilter()}${headerRight(compact)}</div>`;
+  if(allFailed())return head+fullError();
+  let body;
+  if(!compact){
+    body=`<div class="cols">${cols.map(c=>`<div class="col ${c.rest?"rest":""}"><h3>${esc(c.name)} <span class="n">${c.items.length}</span>${S.org==="전체"&&!c.rest?`<span class="orgs">${[...c.orgs].join(", ")}</span>`:""}</h3><div class="list">${c.items.map(i=>card(i,c.key)).join("")||'<div class="empty">없음</div>'}</div></div>`).join("")}</div>`;
+  }else{
+    const c=cols.find(c=>c.key===S.tab);
+    body=`<div class="vstack"><div class="tabs">${cols.map(c=>`<button class="tab ${S.tab===c.key?"on":""}" onclick="S.tab='${c.key}';render()">${esc(c.name)}<span class="n">${c.items.length}</span></button>`).join("")}</div><div class="list">${c.items.map(i=>card(i,c.key)).join("")||'<div class="empty">없음</div>'}</div></div>`;
+  }
+  return head+statusLines()+`<div class="body">${body}${detailPanel()}</div>`;
+}
+
+// ---------- 시안 B: 왼쪽 조직 목록(상태 포함) + 칸이 남은 폭을 나눠 가짐 / 좁은 창은 조직 드롭다운 + 칸 접기 ----------
+function railItem(o){
+  if(o==="전체"){const t=SETTINGS.orgs.reduce((s,x)=>s+orgStatus(x.login).items.length,0);
+    return `<div class="it ${S.org===o?"on":""}" onclick="setOrg('전체')"><div class="top"><b>전체</b><span class="age">${t}</span></div><div class="sub ok">${SETTINGS.orgs.length}개 조직</div></div>`}
+  const st=orgStatus(o);
+  return `<div class="it ${S.org===o?"on":""}" onclick="setOrg('${o}')"><div class="top"><span>${o}</span><span class="age">${st.items.length}</span></div><div class="sub ${st.status==="ok"?"ok":st.status==="error"?"danger":"warn"}">${st.status==="ok"?"정상":esc(st.msg)}${st.refresh?' · <a onclick="event.stopPropagation();alert(\'다시 받기\')">새로고침</a>':""}</div></div>`;
+}
+function variantB(){
+  const compact=!S.wide;const cols=columns();
+  const head=`<div class="hdr">${compact?orgSelect():"<h1>조직 이슈</h1>"}${repoFilter()}${labelFilter()}${headerRight(compact)}</div>`;
+  if(allFailed())return head+fullError();
+  if(!compact){
+    const fit=cols.length<=4;
+    const rail=`<div class="rail">${["전체",...SETTINGS.orgs.map(o=>o.login)].map(railItem).join("")}</div>`;
+    const colsHtml=`<div class="cols">${cols.map(c=>`<div class="col ${c.rest?"rest":""} ${fit?"fit":""}"><h3>${esc(c.name)} <span class="n">${c.items.length}</span></h3><div class="list">${c.items.map(i=>card(i,c.key)).join("")||'<div class="empty">없음</div>'}</div></div>`).join("")}</div>`;
+    return head+`<div class="body">${rail}${colsHtml}${detailPanel()}</div>`;
+  }
+  // 좁은 창: 상태 줄은 머리 아래, 칸은 접고 펼치는 묶음(기본은 첫 칸만 펼침)
+  const secs=cols.map((c,idx)=>{const closed=S.collapsed.has(c.key)!==(idx!==0);
+    return `<div class="sec"><h3 onclick="toggleSec('${c.key}')">${closed?"▸":"▾"} ${esc(c.name)} <span class="n">${c.items.length}</span></h3>${closed?"":`<div class="rows">${c.items.map(i=>card(i,c.key)).join("")||'<div class="empty">없음</div>'}</div>`}</div>`}).join("");
+  return head+statusLines()+`<div class="body"><div class="sections">${secs}</div>${detailPanel()}</div>`;
+}
+
+// ---------- 시안 C: 칸을 세로로 쌓은 묶음 목록 + 칸 바로가기 / 넓은 창은 카드 격자 ----------
+function variantC(){
+  const compact=!S.wide;const cols=columns();
+  const head=`<div class="hdr">${compact?"":"<h1>조직 이슈</h1>"}${compact?orgSelect():orgSeg()}${repoFilter()}${labelFilter()}${headerRight(compact)}</div>`;
+  if(allFailed())return head+fullError();
+  const jump=`<div class="jump">${cols.map(c=>`<button class="tab" onclick="document.getElementById('sec-${c.key.replace(/[^a-z0-9]/g,"_")}').scrollIntoView({block:'start'})">${esc(c.name)} <span class="n">${c.items.length}</span></button>`).join("")}</div>`;
+  const secs=cols.map(c=>`<div class="sec" id="sec-${c.key.replace(/[^a-z0-9]/g,"_")}"><h3>${esc(c.name)} <span class="n">${c.items.length}</span></h3><div class="rows">${c.items.map(i=>card(i,c.key)).join("")||'<div class="empty">없음</div>'}</div></div>`).join("");
+  return head+statusLines()+jump+`<div class="body"><div class="sections">${secs}</div>${detailPanel()}</div>`;
+}
+
+// ---------- 동작 ----------
+function setOrg(o){S.org=o;S.openMenu=null;render()}
+function toggleMenu(m){S.openMenu=S.openMenu===m?null:m;render()}
+function toggleRepo(r){S.hiddenRepos.has(r)?S.hiddenRepos.delete(r):S.hiddenRepos.add(r);render()}
+function repos_none(){allItems().forEach(i=>S.hiddenRepos.add(i.org+"/"+i.repo));render()}
+function toggleLabel(l){S.labelFilter.has(l)?S.labelFilter.delete(l):S.labelFilter.add(l);render()}
+function toggleSec(k){S.collapsed.has(k)?S.collapsed.delete(k):S.collapsed.add(k);render()}
+function openDetail(o,r,n){S.detail=allItems().find(i=>i.org===o&&i.repo===r&&i.number===n);S.openMenu=null;render()}
+function toggleTheme(){const r=document.documentElement;r.dataset.theme=r.dataset.theme==="dark"?"light":"dark"}
+function cycle(d){const k=Object.keys(VARIANTS);S.variant=k[(k.indexOf(S.variant)+d+k.length)%k.length];const u=new URL(location);u.searchParams.set("variant",S.variant);history.replaceState(null,"",u);render()}
+document.addEventListener("keydown",e=>{if(e.target.matches("input,textarea,select,[contenteditable]"))return;if(e.key==="ArrowLeft")cycle(-1);if(e.key==="ArrowRight")cycle(1)});
+document.addEventListener("click",e=>{if(S.openMenu&&!e.target.closest(".dd")){S.openMenu=null;render()}});
+
+function render(){
+  const v=S.variant in VARIANTS?S.variant:"A";
+  const inner={A:variantA,B:variantB,C:variantC}[v]();
+  document.getElementById("app").innerHTML=`<div class="frame ${S.wide?"wide":"compact"}"><div class="chrome">Paseo 화면 머리글 · 조직 이슈</div>${inner}</div>`;
+  document.getElementById("vlabel").textContent=`${v} (${VARIANTS[v]})`;
+  const cols=columns();
+  document.getElementById("state").textContent=JSON.stringify({
+    variant:v,창:S.wide?"넓은 창":"좁은 창",조직:S.org,조회상황:S.scenario,연결PR:S.pr,
+    숨긴저장소:[...S.hiddenRepos],라벨필터:[...S.labelFilter],
+    칸:cols.map(c=>`${c.name} ${c.items.length}`),상태줄:problems().map(p=>`${p.o}: ${p.status}`)
+  },null,1);
+}
+document.documentElement.dataset.theme="dark";
+render();
+</script>
+</body>
+</html>
