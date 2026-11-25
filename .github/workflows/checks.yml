@@ -107,6 +107,7 @@ jobs:
         # Spelled out rather than read from an `env`, because a matrix is evaluated before workflow
         # env exists. Adding a plugin means editing this list, the three script invocations above, and
         # `publish.yml`'s.
+        # Directory paths, not manifest ids: github-board hosts illuwa-github-board.
         plugin: [skills, github-board, launchd-jobs, herald, model-pricing, firstmate]
     defaults:
       run:

@@ -257,7 +257,7 @@ function describeGhFailure(error: unknown): string {
 }
 
 /** `signal` kills the subprocess when it fires, for a caller with a deadline. */
-async function gh(args: readonly string[], signal?: AbortSignal): Promise<string> {
+export async function gh(args: readonly string[], signal?: AbortSignal): Promise<string> {
   try {
     const { stdout } = await execFileAsync("gh", [...args], {
       maxBuffer: MAX_OUTPUT_BYTES,
@@ -283,7 +283,7 @@ async function resolveViewerLogin(): Promise<string> {
   return login;
 }
 
-interface GhSearchNode {
+export interface GhSearchNode {
   id?: unknown;
   number?: unknown;
   title?: unknown;
@@ -295,7 +295,7 @@ interface GhSearchNode {
   repository?: { nameWithOwner?: unknown; isArchived?: unknown };
 }
 
-function toItem(node: GhSearchNode, detail: string | null): BoardItem {
+export function toItem(node: GhSearchNode, detail: string | null): BoardItem {
   const labelNodes = node.labels?.nodes;
   const labels = Array.isArray(labelNodes)
     ? labelNodes

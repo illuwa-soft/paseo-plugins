@@ -5,11 +5,11 @@ import type { Board, BoardItem, ColumnId } from "../shared/board";
 /**
  * The board's one screen. Also the sidebar item's id, which is not a free
  * choice: Settings > Sidebar keys its ordering and hidden state on the item id,
- * and a saved `/plugin/github-board/sidebar/board` link resolves to the screen
+ * and a saved `/plugin/illuwa-github-board/sidebar/board` link resolves to the screen
  * of the same id, so renaming either loses both.
  */
 export const BOARD_SCREEN_ID = "board";
-export const BOARD_TITLE = "GitHub";
+export const BOARD_TITLE = "GitHub (illuwa)";
 
 /**
  * The screen param naming the card to open on arrival, as `owner/name#number`.

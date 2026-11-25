@@ -3,9 +3,19 @@
 Notable changes to `github-board`. The other plugins in this repository version separately.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the version numbers
-follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Every version is published to npm
-as `@gpambrozio/paseo-github-board` and tagged here, so a version is something to install and a line
-to read before you move.
+follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+0.12.0 이전 기록은 upstream `@gpambrozio/paseo-github-board` 패키지의 변경 이력이다.
+illuwa 포크는 `@illuwa-soft/paseo-github-board`라는 이름으로 로컬 디렉터리에서 설치한다.
+
+## [0.12.0] — 2026-11-26
+
+### 변경
+
+- 포크 ID를 `illuwa-github-board`로 바꾸고 사이드바와 설정에 **GitHub (illuwa)**를 표시한다.
+- 설정과 데몬 데이터는 별도로 시작하며 upstream `github-board` 데이터는 이관하지 않는다.
+- 기존 `gh` 도우미, `GhSearchNode` 타입, 검색 결과를 카드로 변환하는 `toItem`을
+  서버 모듈에서 재사용할 수 있도록 export한다. 개인 보드의 동작은 유지한다.
 
 ## [0.11.0] — 2026-11-07
 

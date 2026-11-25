@@ -35,13 +35,13 @@ export default function contribute(client: PluginClientContext) {
   });
   client.addSettingsScreen({
     id: "board",
-    title: "GitHub board",
+    title: "GitHub (illuwa)",
     icon: GITHUB_MARK,
     Component: BoardSettingsScreen,
   });
   client.addCommandCenterItem({
     id: "board-settings",
-    title: "GitHub board settings",
+    title: "GitHub (illuwa) settings",
     icon: "Settings",
     keywords: ["github", "prompts", "templates", "login"],
     context: "global",
@@ -51,7 +51,7 @@ export default function contribute(client: PluginClientContext) {
   });
   client.addCommandCenterItem({
     id: "open-board",
-    title: "Open GitHub board",
+    title: "Open GitHub (illuwa)",
     icon: GITHUB_MARK,
     keywords: ["github", "issues", "pull requests", "prs", "discussions"],
     context: "global",
