@@ -25,6 +25,16 @@ pipeline. Here a pull request gets no check runs, `main` has no branch protectio
 the pull request and list their results in it. Repository settings — Actions on or off, a workflow's
 state, branch protection — are a human's call; when CI is missing, record that it did not run.
 
+The checks `checks.yml` runs, locally. The repo-level scripts run from the repo root and take the
+plugin folders as arguments — with none they print a usage line and check nothing:
+
+```bash
+node .github/scripts/check-plugin-consistency.mjs skills github-board launchd-jobs herald model-pricing firstmate
+node .github/scripts/check-changelog-bump.mjs origin/main skills github-board launchd-jobs herald model-pricing firstmate
+node .github/scripts/check-lucide-icons.mjs skills github-board launchd-jobs herald model-pricing firstmate
+for p in skills github-board launchd-jobs herald model-pricing firstmate; do (cd "$p" && npm ci && npm run typecheck && npm test); done
+```
+
 ## There is no workspace root
 
 Each folder is an independent npm project with its own `package.json`, `node_modules`,
