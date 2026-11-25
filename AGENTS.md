@@ -32,6 +32,7 @@ plugin folders as arguments — with none they print a usage line and check noth
 node .github/scripts/check-plugin-consistency.mjs skills github-board launchd-jobs herald model-pricing firstmate
 node .github/scripts/check-changelog-bump.mjs origin/main skills github-board launchd-jobs herald model-pricing firstmate
 node .github/scripts/check-lucide-icons.mjs skills github-board launchd-jobs herald model-pricing firstmate
+node .github/scripts/check-comment-language.mjs skills github-board launchd-jobs herald model-pricing firstmate
 for p in skills github-board launchd-jobs herald model-pricing firstmate; do (cd "$p" && npm ci && npm run typecheck && npm test); done
 ```
 
