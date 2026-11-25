@@ -30,6 +30,7 @@
 다른 플러그인 소스는 수정하지 않았다. CI의 Ubuntu / Node 24와 이번 실행 환경은 다르다.
 
 추가로 전체 `check-plugin-consistency.mjs`, `check-lucide-icons.mjs`, `github-board`의 `npm pack --dry-run`, `git diff --check`가 통과했다.
+커밋 후 원본 `check-changelog-bump.mjs`도 전체 여섯 폴더에 실행해 통과했다.
 SDK 타입 가드와 host-imports 테스트는 해당 typecheck·테스트에 포함된다.
 
 ## 격리 실행·브라우저 증거
@@ -59,6 +60,18 @@ SDK 타입 가드와 host-imports 테스트는 해당 typecheck·테스트에 �
 - 복구 명령: `gh api --method PUT repos/illuwa-soft/paseo-plugins/actions/permissions -F enabled=true -f allowed_actions=all`. 기존 사람 결정이 바뀌지 않으면 복구하지 않는다.
 - 원격 CI·npm 게시·태그·release·merge는 실행하지 않았다. Actions 비활성화에 따라 전체 로컬 검사로 확인했다.
 - 임시 config와 플러그인 복사본 외에 운영 파일 변경은 없다. 검증 종료 시 이 실행 소유의 임시 데몬을 중지한다. 운영 home과 기존 설치는 그대로 둔다.
+- 종료 확인: 격리 데몬 중지 완료. 운영 PID `45167`, 시작 시각 `2026-11-23T11:45:11.064Z`와 기존 플러그인 목록은 그대로였다. 작업 소유 브라우저 탭은 닫았다.
+
+## 판단 계측
+
+부모·구현 보조 에이전트 합계 8회, 호출 시간 7,194ms, 정가 비용 $0.00204825.
+전체 작업 시간·비용과 별개이며 절감률을 주장하지 않는다. 모델은 모두 `gpt-6-luna`.
+상세 호출 기록은 로컬 `issue12-decisions.json`, `issue12-evidence/runtime-decisions.md`에 있다.
+최종 근거는 `f7558aa` diff와 검사 기록 26,153 bytes, 질문은 1,658 bytes였다.
+최종 판단은 reload·일관성·도우미 보존 충족, blocker를 둔 draft 전달이었다.
+테스트 항목 판단 confidence가 0.34여서 본 에이전트가 직접 판정했다:
+`github-board` 122건과 타입 검사는 충족하지만 전체 저장소 검사는 실패하므로 리뷰 준비 완료로 보고하지 않는다.
+보조 에이전트의 범위 판단도 confidence 0.49여서 실제 변경 경로를 직접 대조했다.
 
 ## 재개
 
