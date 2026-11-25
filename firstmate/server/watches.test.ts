@@ -18,6 +18,7 @@ import {
 
 const tempDirs: string[] = [];
 afterEach(async () => {
+  vi.useRealTimers();
   await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
 });
 
@@ -502,9 +503,9 @@ describe("runWatchScript", () => {
     const path = await real(
       `echo $$ > "${groupFile}"\nsh -c 'trap "" TERM; echo $$ > "${pidFile}"; while :; do sleep 1; done' >/dev/null 2>&1 </dev/null &\nsleep 30`,
     );
-    // 프로세스와 파일 I/O는 실제로 실행하고, 종료 타이머만 준비 확인 뒤 진행한다.
-    // vi.waitFor는 가짜 시간을 자동 진행하므로 실제 시간으로 제한된 관측을 사용한다.
-    async function observe(check: () => void | Promise<void>): Promise<void> {
+    // Processes and file I/O run for real; only the kill timers are faked, and advanced once the child is ready.
+    // vi.waitFor would advance fake time on its own, so this polls against the real clock instead.
+    async function pollRealTime(check: () => void | Promise<void>): Promise<void> {
       const deadline = Date.now() + 5000;
       for (;;) {
         try {
@@ -529,7 +530,7 @@ describe("runWatchScript", () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const running = runWatchScript(path, { ...options, timeoutMs: 300, killGraceMs: 300, signal: controller.signal });
     try {
-      await observe(async () => {
+      await pollRealTime(async () => {
         child = Number((await readFile(pidFile, "utf8")).trim());
         expect(child).toBeGreaterThan(0);
       });
@@ -539,18 +540,18 @@ describe("runWatchScript", () => {
       await vi.advanceTimersByTimeAsync(299);
       expect(alive()).toBe(true);
       await vi.advanceTimersByTimeAsync(1);
-      await observe(() => expect(alive()).toBe(false));
+      await pollRealTime(() => expect(alive()).toBe(false));
     } finally {
       controller.abort();
       await vi.advanceTimersByTimeAsync(300);
       vi.useRealTimers();
-      // 단언 실패나 종료 로직 회귀 때도 이 테스트의 프로세스 그룹을 남기지 않는다.
+      // Leave no process group behind, even when an assertion fails or the kill logic regresses.
       const group = Number(await readFile(groupFile, "utf8").catch(() => "0"));
       if (group > 0) {
         try {
           process.kill(-group, "SIGKILL");
         } catch {
-          // 이미 종료한 그룹.
+          // Already gone.
         }
       }
       await running;
