@@ -594,3 +594,17 @@ first mate when a crewmate finishes, errors or asks for permission, so there is 
 tools are off by default in Paseo (`daemon.mcp.injectIntoAgents`), which the board offers to turn on;
 and **the crew is found by label**, `firstmate.role=crew`, which the charter and the board read from the
 same constant.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues (`illuwa-soft/paseo-plugins`), driven with the `gh` CLI; wayfinder maps use sub-issues and native dependencies. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage roles use their default label names. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root, created lazily. See `docs/agents/domain.md`.
