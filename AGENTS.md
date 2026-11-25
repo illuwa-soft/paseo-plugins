@@ -15,15 +15,21 @@ plist, `herald/AGENTS.md` before touching the lifecycle hooks or the summary hel
 `firstmate/AGENTS.md` before touching the first mate's charter or how the board finds the crew. This
 file is only what they share.
 
-## This fork runs no CI
+## This fork's CI is off by decision; local checks are the gate
 
-`illuwa-soft/paseo-plugins` is a fork, and its GitHub Actions are off by a human decision
+`illuwa-soft/paseo-plugins` is a fork, and a human decided its GitHub Actions stay off
 ([#6, decision 8](https://github.com/illuwa-soft/paseo-plugins/issues/6#issuecomment-7152536096)):
 no tag, release or npm publish, and `publish.yml` stays as it is. Read *Releases* below as upstream's
-pipeline. Here a pull request gets no check runs, `main` has no branch protection, and
-`gh pr checks` answers "no checks reported". The local checks are the gate: run them before opening
-the pull request and list their results in it. Repository settings — Actions on or off, a workflow's
-state, branch protection — are a human's call; when CI is missing, record that it did not run.
+pipeline. `main` has no branch protection, so nothing requires `Checks passed`. Whether Actions are
+on right now is not something to assume: they were switched on during #24 and turning them back off
+is [#26](https://github.com/illuwa-soft/paseo-plugins/issues/26), so `gh pr checks` may list check
+runs or answer "no checks reported". Either way the local checks are the gate: run them before
+opening the pull request and list their results in it, and say whether CI ran. Repository settings —
+Actions on or off, a workflow's state, branch protection — are a human's call; never change them to
+get a check to run.
+
+Comments in the plugins' code are English, like the upstream they track; strings a user sees may be
+Korean. `check-comment-language.mjs` below enforces the first half.
 
 The checks `checks.yml` runs, locally. The repo-level scripts run from the repo root and take the
 plugin folders as arguments — with none they print a usage line and check nothing:

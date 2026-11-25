@@ -123,8 +123,8 @@ jobs:
       fail-fast: false
       matrix:
         # Spelled out rather than read from an `env`, because a matrix is evaluated before workflow
-        # env exists. Adding a plugin means editing this list, the four script invocations above, and
-        # `publish.yml`'s.
+        # env exists. Adding a plugin means editing this list, the four script invocations above,
+        # `publish.yml`'s, and the local copy of these commands in the root `AGENTS.md`.
         plugin: [skills, github-board, launchd-jobs, herald, model-pricing, firstmate]
     defaults:
       run:

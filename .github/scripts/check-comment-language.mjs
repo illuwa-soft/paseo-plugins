@@ -10,8 +10,10 @@
  *
  * Only comments are read. String literals, template literals, regular expressions and JSX text are
  * code — a Korean label a user sees is not this check's business. The scanner is a small lexer, not
- * a parser: a `//` inside JSX text (a bare URL between tags) reads as a comment. Put such text in a
- * string literal.
+ * a parser, and JSX is where it guesses wrong, both ways. A `//` inside JSX text (a bare URL between
+ * tags) reads as a comment: put such text in a string literal. And the rest of a line is skipped
+ * after an apostrophe in JSX text (`<Text>it's</Text>`, read as a string) or a closing tag
+ * (`</b>`, read as a regular expression), so a comment later on that same line is missed.
  *
  * Run as `node .github/scripts/check-comment-language.mjs <plugin-dir>...` from the repository
  * root. No dependencies. It reads the two entries and every `.ts`/`.tsx` under `client/`, `server/`
@@ -29,7 +31,7 @@ const REGEX_AFTER_WORD = new Set([
 ]);
 
 /** Every comment in `source` as `{ start, text }`. */
-export function comments(source) {
+function comments(source) {
   const found = [];
   let i = 0;
   // What came last, for telling a regular expression from a division: "value" or "operator".
