@@ -1,7 +1,8 @@
 import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { setTimeout as delay } from "node:timers/promises";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { runWatchScript, type RunOptions, type RunResult } from "./watch-run";
 import {
@@ -497,12 +498,25 @@ describe("runWatchScript", () => {
   it("kills the whole group after the grace period, even a child that ignores SIGTERM and let go of the pipes", async () => {
     const dir = await tempDir();
     const pidFile = join(dir, "child.pid");
+    const groupFile = join(dir, "group.pid");
     const path = await real(
-      `sh -c 'trap "" TERM; echo $$ > "${pidFile}"; while :; do sleep 1; done' >/dev/null 2>&1 </dev/null &\nsleep 30`,
+      `echo $$ > "${groupFile}"\nsh -c 'trap "" TERM; echo $$ > "${pidFile}"; while :; do sleep 1; done' >/dev/null 2>&1 </dev/null &\nsleep 30`,
     );
-    const result = await runWatchScript(path, { ...options, timeoutMs: 300, killGraceMs: 300 });
-    expect(result.timedOut).toBe(true);
-    const child = Number((await readFile(pidFile, "utf8")).trim());
+    // 프로세스와 파일 I/O는 실제로 실행하고, 종료 타이머만 준비 확인 뒤 진행한다.
+    // vi.waitFor는 가짜 시간을 자동 진행하므로 실제 시간으로 제한된 관측을 사용한다.
+    async function observe(check: () => void | Promise<void>): Promise<void> {
+      const deadline = Date.now() + 5000;
+      for (;;) {
+        try {
+          await check();
+          return;
+        } catch (error) {
+          if (Date.now() >= deadline) throw error;
+          await delay(10);
+        }
+      }
+    }
+    let child = 0;
     const alive = () => {
       try {
         process.kill(child, 0);
@@ -511,11 +525,37 @@ describe("runWatchScript", () => {
         return false;
       }
     };
-    // The script is gone and has been answered for; its child outlives SIGTERM until SIGKILL lands.
-    expect(alive()).toBe(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    expect(alive()).toBe(false);
-  });
+    const controller = new AbortController();
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const running = runWatchScript(path, { ...options, timeoutMs: 300, killGraceMs: 300, signal: controller.signal });
+    try {
+      await observe(async () => {
+        child = Number((await readFile(pidFile, "utf8")).trim());
+        expect(child).toBeGreaterThan(0);
+      });
+      await vi.advanceTimersByTimeAsync(300);
+      expect(await running).toMatchObject({ timedOut: true, code: null, spawnError: null });
+      expect(alive()).toBe(true);
+      await vi.advanceTimersByTimeAsync(299);
+      expect(alive()).toBe(true);
+      await vi.advanceTimersByTimeAsync(1);
+      await observe(() => expect(alive()).toBe(false));
+    } finally {
+      controller.abort();
+      await vi.advanceTimersByTimeAsync(300);
+      vi.useRealTimers();
+      // 단언 실패나 종료 로직 회귀 때도 이 테스트의 프로세스 그룹을 남기지 않는다.
+      const group = Number(await readFile(groupFile, "utf8").catch(() => "0"));
+      if (group > 0) {
+        try {
+          process.kill(-group, "SIGKILL");
+        } catch {
+          // 이미 종료한 그룹.
+        }
+      }
+      await running;
+    }
+  }, 15000);
 
   it("does not start a script once the plugin has stopped", async () => {
     const dir = await tempDir();
