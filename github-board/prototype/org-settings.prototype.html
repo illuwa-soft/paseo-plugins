@@ -1,0 +1,190 @@
+<!doctype html>
+<!--
+  PROTOTYPE — 버릴 코드입니다. main에 병합하지 않습니다.
+  질문: 「조직·라벨 설정 화면」(illuwa-soft/paseo-plugins#4)
+  세 가지 시안을 ?variant=A|B|C 로 바꿔 봅니다. 하단 막대의 화살표나 키보드 ←/→ 로도 바뀝니다.
+  저장은 하지 않습니다. 화면 아래의 "저장될 설정 문서" 상자가 현재 상태를 보여 줍니다.
+  라벨 제안 목록은 2026-11-25 illuwa-soft 열린 이슈의 실제 라벨 건수입니다.
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE · 조직·라벨 설정</title>
+<style>
+  :root[data-theme=dark]{--s0:#16181c;--s1:#1f2228;--s2:#2a2e36;--fg:#e8eaed;--muted:#9aa0a6;--border:#343944;--accent:#5b8def;--accentFg:#fff;--ok:#3fb950;--warn:#d29922;--danger:#f85149}
+  :root[data-theme=light]{--s0:#ffffff;--s1:#f5f6f8;--s2:#e9ebef;--fg:#1f2328;--muted:#656d76;--border:#d0d7de;--accent:#0969da;--accentFg:#fff;--ok:#1a7f37;--warn:#9a6700;--danger:#cf222e}
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;background:var(--s0);color:var(--fg)}
+  .frame{margin:24px auto;border:1px solid var(--border);border-radius:10px;background:var(--s0);overflow:hidden}
+  .frame.wide{width:860px}.frame.compact{width:380px}
+  .hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .hdr h1{font-size:16px;margin:0;flex:1}
+  .body{padding:16px 18px}
+  .hint{color:var(--muted);font-size:12.5px;margin:4px 0 14px}
+  .row{display:flex;gap:8px;align-items:center}
+  input[type=text]{background:var(--s1);color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font:inherit;min-width:0;flex:1}
+  button{background:var(--s2);color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font:inherit;cursor:pointer}
+  button.primary{background:var(--accent);color:var(--accentFg);border-color:var(--accent)}
+  button.icon{padding:2px 7px;font-size:12px}
+  button:disabled{opacity:.35;cursor:default}
+  .card{border:1px solid var(--border);border-radius:8px;background:var(--s1);margin-bottom:12px}
+  .card>.top{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer}
+  .card>.top b{flex:1}
+  .card>.inner{padding:0 12px 12px;border-top:1px solid var(--border)}
+  .muted{color:var(--muted)}.small{font-size:12px}
+  .chip{display:inline-flex;align-items:center;gap:4px;background:var(--s2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;margin:3px 4px 3px 0;font-size:12.5px}
+  .chip.sug{cursor:pointer;border-style:dashed}
+  .chip.sug:hover{border-color:var(--accent)}
+  .lbl-list{list-style:none;margin:10px 0;padding:0}
+  .lbl-list li{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;margin-bottom:5px;background:var(--s0)}
+  .lbl-list li .n{width:18px;color:var(--muted);font-size:12px;text-align:right}
+  .lbl-list li .name{flex:1}
+  .lbl-list li.rest{border-style:dashed;color:var(--muted)}
+  .err{color:var(--danger);font-size:12.5px}.warn{color:var(--warn);font-size:12.5px}.ok{color:var(--ok);font-size:12.5px}
+  .md{display:flex;min-height:330px}
+  .md .side{width:200px;border-right:1px solid var(--border);padding:8px}
+  .md .side .it{padding:7px 9px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between}
+  .md .side .it.sel{background:var(--s2)}
+  .md .main{flex:1;padding:12px 14px;min-width:0}
+  .compact .md{flex-direction:column}.compact .md .side{width:auto;border-right:0;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px}
+  .preview{display:flex;gap:8px;overflow-x:auto;padding:8px 0}
+  .col{min-width:130px;flex:0 0 auto;border:1px solid var(--border);border-radius:8px;background:var(--s0);padding:8px}
+  .col.drag{opacity:.4}.col.over{border-color:var(--accent)}
+  .col h4{margin:0 0 6px;font-size:12.5px;display:flex;justify-content:space-between;gap:6px}
+  .col .ghost{height:14px;background:var(--s2);border-radius:4px;margin:5px 0}
+  .col.rest{border-style:dashed}
+  textarea{width:100%;background:var(--s1);color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font:13px/1.5 ui-monospace,Menlo,monospace;resize:vertical}
+  table.t{width:100%;border-collapse:collapse}
+  table.t td{padding:8px 4px;border-bottom:1px solid var(--border);vertical-align:top}
+  pre.state{margin:16px auto;width:860px;max-width:95vw;background:var(--s1);border:1px dashed var(--border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);white-space:pre-wrap}
+  .tools{position:fixed;top:10px;right:12px;display:flex;gap:6px}
+  .switcher{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#111;color:#fff;border-radius:999px;padding:6px 10px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:9;font-size:13px}
+  .switcher button{background:#333;color:#fff;border:0;border-radius:999px;padding:4px 10px}
+</style>
+</head>
+<body>
+<div class="tools">
+  <button onclick="toggleTheme()">테마 전환</button>
+  <button onclick="toggleWidth()">넓은 창 / 좁은 창</button>
+</div>
+<div id="app"></div>
+<pre class="state" id="state"></pre>
+<div class="switcher"><button onclick="cycle(-1)">◀</button><span id="vlabel"></span><button onclick="cycle(1)">▶</button></div>
+
+<script>
+// ---- 가짜 데이터 (프로토타입 전용) ----
+const KNOWN_ORGS = { "illuwa-soft": true, "shoveller": true, "getpaseo": true };
+const SUGGEST = { // 조직의 열린 이슈에 실제로 붙어 있는 라벨과 건수
+  "illuwa-soft": [["needs-triage",27],["ready-for-human",5],["ready-for-agent",3],["needs-info",2],["wayfinder:prototype",2],["wayfinder:map",2],["wayfinder:grilling",2],["wontfix",1],["needs-cellular",1],["enhancement",1],["documentation",1]],
+  "shoveller": [["bug",9],["needs-triage",6],["ready-for-human",2]],
+  "getpaseo": [["bug",14],["enhancement",11],["good first issue",4]],
+};
+let state = { orgs: [ { login: "illuwa-soft", columnLabels: ["ready-for-human","ready-for-agent","needs-triage"] } ] };
+let ui = { open: {"illuwa-soft": true}, sel: "illuwa-soft", addErr: "", addDraft: "", lblDraft: {}, textDraft: {} };
+
+const params = new URLSearchParams(location.search);
+const VARIANTS = ["A","B","C"];
+const NAMES = { A: "조직별 펼침 목록 + ↑↓", B: "조직 목록 | 칸 미리보기(끌어서 순서)", C: "조직별 한 줄 텍스트" };
+let variant = VARIANTS.includes(params.get("variant")) ? params.get("variant") : "A";
+document.documentElement.dataset.theme = params.get("theme") || "dark";
+let width = params.get("w") || "wide";
+
+function setParam(k,v){ params.set(k,v); history.replaceState(null,"","?"+params); }
+function cycle(d){ variant = VARIANTS[(VARIANTS.indexOf(variant)+d+3)%3]; setParam("variant",variant); render(); }
+function toggleTheme(){ const t = document.documentElement.dataset.theme==="dark"?"light":"dark"; document.documentElement.dataset.theme=t; setParam("theme",t); }
+function toggleWidth(){ width = width==="wide"?"compact":"wide"; setParam("w",width); render(); }
+document.addEventListener("keydown", e => { if (e.target.closest("input,textarea,[contenteditable]")) return; if (e.key==="ArrowLeft") cycle(-1); if (e.key==="ArrowRight") cycle(1); });
+
+// ---- 공통 동작 ----
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const org = login => state.orgs.find(o => o.login === login);
+function addOrg(){
+  const v = ui.addDraft.trim().replace(/^@/,"").toLowerCase();
+  ui.addErr = "";
+  if (!v) return;
+  if (state.orgs.some(o => o.login === v)) { ui.addErr = `이미 등록된 조직입니다: ${v}`; return render(); }
+  if (!KNOWN_ORGS[v]) { ui.addErr = `"${v}" 조직을 찾을 수 없거나 접근 권한이 없습니다. (추가 시점 확인 — 실제로는 RPC 한 번)`; return render(); }
+  state.orgs.push({ login: v, columnLabels: [] }); ui.addDraft = ""; ui.open[v] = true; ui.sel = v; render();
+}
+function removeOrg(l){ if (!confirm(`${l} 조직을 지울까요? 칸 라벨 설정도 함께 사라집니다.`)) return; state.orgs = state.orgs.filter(o => o.login !== l); if (ui.sel===l) ui.sel = state.orgs[0]?.login; render(); }
+function addLabel(l, name){ name = (name ?? ui.lblDraft[l] ?? "").trim(); if (!name) return; const o = org(l); if (!o.columnLabels.includes(name)) o.columnLabels.push(name); ui.lblDraft[l] = ""; render(); }
+function removeLabel(l, i){ org(l).columnLabels.splice(i,1); render(); }
+function move(l, i, d){ const a = org(l).columnLabels, j = i+d; if (j<0||j>=a.length) return; [a[i],a[j]]=[a[j],a[i]]; render(); }
+function suggestions(l){ const used = new Set(org(l).columnLabels); return (SUGGEST[l]||[]).filter(([n]) => !used.has(n)); }
+const sugChips = l => suggestions(l).map(([n,c]) => `<span class="chip sug" onclick='addLabel(${JSON.stringify(l)},${JSON.stringify(n)})'>+ ${esc(n)} <span class="muted">${c}</span></span>`).join("") || `<span class="muted small">제안할 라벨이 없습니다.</span>`;
+const guide = `<div class="hint">토큰(<code>gh</code> 로그인)이 볼 수 있는 저장소의 이슈만 나옵니다. 칸은 위에서부터 순서대로 왼쪽에 놓이고, 라벨이 여러 개 붙은 이슈는 앞선 칸에 들어갑니다.</div>`;
+const addOrgRow = () => `<div class="row" style="margin-bottom:6px"><input type="text" placeholder="조직 login (예: shoveller)" value="${esc(ui.addDraft)}" oninput="ui.addDraft=this.value" onkeydown="if(event.key==='Enter')addOrg()"><button class="primary" onclick="addOrg()">조직 추가</button></div>${ui.addErr?`<div class="err">${esc(ui.addErr)}</div>`:""}`;
+const lblInput = l => `<div class="row" style="margin-top:8px"><input type="text" placeholder="라벨 이름 직접 입력" value="${esc(ui.lblDraft[l]||"")}" oninput='ui.lblDraft[${JSON.stringify(l)}]=this.value' onkeydown='if(event.key==="Enter")addLabel(${JSON.stringify(l)})'><button onclick='addLabel(${JSON.stringify(l)})'>칸 추가</button></div>`;
+
+// ---- 시안 A: 조직별 펼침 목록, 라벨은 세로 목록 + ↑↓ ----
+function VariantA(){
+  const cards = state.orgs.map(o => {
+    const L = JSON.stringify(o.login), open = ui.open[o.login];
+    const items = o.columnLabels.map((n,i) => `<li><span class="n">${i+1}</span><span class="name">${esc(n)}</span>
+      <button class="icon" ${i===0?"disabled":""} onclick='move(${L},${i},-1)'>↑</button>
+      <button class="icon" ${i===o.columnLabels.length-1?"disabled":""} onclick='move(${L},${i},1)'>↓</button>
+      <button class="icon" onclick='removeLabel(${L},${i})'>✕</button></li>`).join("");
+    return `<div class="card"><div class="top" onclick='ui.open[${L}]=!ui.open[${L}];render()'>
+        <span>${open?"▾":"▸"}</span><b>${esc(o.login)}</b><span class="muted small">칸 ${o.columnLabels.length}개</span>
+        <button class="icon" onclick='event.stopPropagation();removeOrg(${L})'>조직 삭제</button></div>
+      ${open?`<div class="inner">
+        ${o.columnLabels.length?"":`<div class="warn" style="margin-top:10px">칸 라벨이 없습니다. 모든 이슈가 "나머지 이슈" 칸에 나옵니다.</div>`}
+        <ul class="lbl-list">${items}<li class="rest"><span class="n">—</span><span class="name">나머지 이슈 (항상 마지막)</span></li></ul>
+        <div class="small muted">이 조직의 열린 이슈에 붙은 라벨 (눌러서 추가)</div>${sugChips(o.login)}
+        ${lblInput(o.login)}</div>`:""}</div>`;
+  }).join("");
+  return `${guide}${cards}${addOrgRow()}`;
+}
+
+// ---- 시안 B: 왼쪽 조직 목록, 오른쪽 칸 미리보기를 끌어서 순서 변경 ----
+let dragFrom = null;
+function VariantB(){
+  const side = state.orgs.map(o => `<div class="it ${ui.sel===o.login?"sel":""}" onclick='ui.sel=${JSON.stringify(o.login)};render()'><span>${esc(o.login)}</span><span class="muted small">${o.columnLabels.length}</span></div>`).join("")
+    + `<div style="margin-top:8px">${addOrgRow()}</div>`;
+  const o = org(ui.sel);
+  let main = `<div class="muted">왼쪽에서 조직을 고르거나 추가하세요.</div>`;
+  if (o) {
+    const L = JSON.stringify(o.login);
+    const cols = o.columnLabels.map((n,i) => `<div class="col" draggable="true" data-i="${i}"
+        ondragstart="dragFrom=${i};this.classList.add('drag')" ondragend="this.classList.remove('drag')"
+        ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')"
+        ondrop='event.preventDefault();dropOn(${L},${i})'>
+        <h4><span>⋮⋮ ${esc(n)}</span><span style="cursor:pointer" onclick='removeLabel(${L},${i})'>✕</span></h4>
+        <div class="ghost"></div><div class="ghost" style="width:70%"></div></div>`).join("");
+    main = `<div class="row"><b style="flex:1">${esc(o.login)}</b><button class="icon" onclick='removeOrg(${L})'>조직 삭제</button></div>
+      ${guide}
+      <div class="small muted">보드에 놓일 칸 — 끌어서 순서를 바꿉니다</div>
+      <div class="preview">${cols}<div class="col rest"><h4><span>나머지 이슈</span></h4><div class="ghost"></div></div></div>
+      <div class="small muted" style="margin-top:6px">이 조직의 열린 이슈에 붙은 라벨 (눌러서 칸으로 추가)</div>${sugChips(o.login)}
+      ${lblInput(o.login)}`;
+  }
+  return `<div class="md"><div class="side">${side}</div><div class="main">${main}</div></div>`;
+}
+function dropOn(l, to){ const a = org(l).columnLabels; if (dragFrom===null||dragFrom===to) return; const [x] = a.splice(dragFrom,1); a.splice(to,0,x); dragFrom=null; render(); }
+
+// ---- 시안 C: 조직마다 한 줄 텍스트. 쉼표 순서가 칸 순서 ----
+function VariantC(){
+  const rows = state.orgs.map(o => {
+    const L = JSON.stringify(o.login);
+    const draft = ui.textDraft[o.login] ?? o.columnLabels.join(", ");
+    const unknown = o.columnLabels.filter(n => !(SUGGEST[o.login]||[]).some(([s]) => s===n));
+    return `<tr><td style="width:140px"><b>${esc(o.login)}</b><br><button class="icon" style="margin-top:6px" onclick='removeOrg(${L})'>삭제</button></td>
+      <td><input type="text" style="width:100%" value="${esc(draft)}" placeholder="ready-for-human, ready-for-agent"
+        oninput='ui.textDraft[${L}]=this.value'
+        onblur='org(${L}).columnLabels=[...new Set(this.value.split(",").map(s=>s.trim()).filter(Boolean))];delete ui.textDraft[${L}];render()'>
+        <div class="small muted" style="margin-top:4px">칸: ${o.columnLabels.map(esc).join(" → ") || "(없음)"} → 나머지 이슈</div>
+        ${unknown.length?`<div class="warn">지금 열린 이슈에 붙어 있지 않은 라벨: ${unknown.map(esc).join(", ")} (빈 칸이 됩니다)</div>`:""}</td></tr>`;
+  }).join("");
+  return `${guide}<table class="t">${rows}</table><div style="margin-top:12px">${addOrgRow()}</div>`;
+}
+
+function render(){
+  const V = { A: VariantA, B: VariantB, C: VariantC }[variant];
+  document.getElementById("app").innerHTML = `<div class="frame ${width}"><div class="hdr"><h1>조직 이슈 — 설정</h1><span class="muted small">PROTOTYPE · ${variant}</span></div><div class="body">${V()}</div></div>`;
+  document.getElementById("vlabel").textContent = `${variant} (${NAMES[variant]})`;
+  document.getElementById("state").textContent = "저장될 설정 문서 (예: defineSettings id \"org-board\"):\n" + JSON.stringify(state, null, 2);
+}
+render();
+</script>
+</body>
+</html>
