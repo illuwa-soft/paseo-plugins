@@ -15,6 +15,16 @@ plist, `herald/AGENTS.md` before touching the lifecycle hooks or the summary hel
 `firstmate/AGENTS.md` before touching the first mate's charter or how the board finds the crew. This
 file is only what they share.
 
+## This fork runs no CI
+
+`illuwa-soft/paseo-plugins` is a fork, and its GitHub Actions are off by a human decision
+([#6, decision 8](https://github.com/illuwa-soft/paseo-plugins/issues/6#issuecomment-7152536096)):
+no tag, release or npm publish, and `publish.yml` stays as it is. Read *Releases* below as upstream's
+pipeline. Here a pull request gets no check runs, `main` has no branch protection, and
+`gh pr checks` answers "no checks reported". The local checks are the gate: run them before opening
+the pull request and list their results in it. Repository settings — Actions on or off, a workflow's
+state, branch protection — are a human's call; when CI is missing, record that it did not run.
+
 ## There is no workspace root
 
 Each folder is an independent npm project with its own `package.json`, `node_modules`,
