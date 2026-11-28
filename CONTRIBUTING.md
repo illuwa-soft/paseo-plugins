@@ -94,6 +94,12 @@ is Hermes, so they fail differently.
 
 ## Pull requests
 
+**Fork policy (`illuwa-soft/paseo-plugins`):** `main` has no branch protection and no
+required GitHub checks; local checks are the gate. Use a feature branch and a pull request
+into `main`, as agreed for this fork. The mandatory PR, squash-only and CI-enforced merge rules
+below describe upstream. For this fork's policy and local check commands, see
+[the fork CI guidance](AGENTS.md#this-forks-ci-is-off-by-decision-local-checks-are-the-gate).
+
 `main` requires a pull request and takes squash merges only, so your branch becomes one commit.
 Before opening one:
 

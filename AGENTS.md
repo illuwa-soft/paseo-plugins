@@ -474,6 +474,9 @@ Three properties worth knowing, all of them deliberate:
   and an entry to read; the first two are automatic now, so the third is checked rather than
   assumed.
 
+**Upstream CI requirement.** This paragraph describes upstream; in this fork, local checks are
+the gate ([fork CI policy](#this-forks-ci-is-off-by-decision-local-checks-are-the-gate)).
+
 **`checks.yml` is what a pull request has to pass**, and `main` requires it. It typechecks and
 tests every plugin, and runs `.github/scripts/check-plugin-consistency.mjs`, which reads the
 declarations inside each plugin that only a human keeps in step: the version in `package.json`
@@ -490,6 +493,9 @@ base's and fails when it did not move, because an entry that merges without a bu
 released — #54 did exactly that and needed a second pull request. That includes an `[Unreleased]`
 entry and a typo fix in an old section: land either alongside the next bump. The reverse is the
 consistency check's job, which wants a section for whatever version is declared.
+
+**Upstream branch protection.** This fork's `main` has no branch protection or required status
+([fork CI policy](#this-forks-ci-is-off-by-decision-local-checks-are-the-gate)).
 
 Branch protection requires one status, **`Checks passed`** — an aggregating job that fails if any
 matrix job failed, was cancelled *or* was skipped. Requiring the per-plugin jobs directly would mean
